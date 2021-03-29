@@ -328,55 +328,52 @@ public class Iso8583MessageFactory {
 		}
 		case LLVAR_CHAR:{
 			//变长处理：读取指定字节的bcd编码数据做为数据长度，继续往后读
-			byte[] content = variableLengthRead(is,1,true);
+			byte[] content = variableLengthReadChar(is,1);
 			result = new String(content,this.charset);
 			break;
 		}
 		case LLLVAR_CHAR:{
 			//变长处理：读取指定字节的bcd编码数据做为数据长度，继续往后读
-			byte[] content = variableLengthRead(is,2,true);
+			byte[] content = variableLengthReadChar(is,2);
 			result = new String(content,this.charset);
 			break;
 		}
 		case LLLLVAR_CHAR:{
 			//变长处理：读取指定字节的bcd编码数据做为数据长度，继续往后读
-			byte[] content = variableLengthRead(is,3,true);
+			byte[] content = variableLengthReadChar(is,3);
 			result = new String(content,this.charset);
 			break;
 		}
 		case LLVAR_NUMERIC:{
 			//变长处理：读取指定字节的bcd编码数据做为数据长度，继续往后读
-			byte[] content = variableLengthRead(is,1,false);
-			result = EncodeUtil.hex(content);
+		    result = variableLengthReadNum(is,1,fieldType);
 			break;
 		}
 		case LLLVAR_NUMERIC:{
 			//变长处理：读取指定字节的bcd编码数据做为数据长度，继续往后读
-			byte[] content = variableLengthRead(is,2,false);
-			result = EncodeUtil.hex(content);
+		    result = variableLengthReadNum(is,2,fieldType);
 			break;
 		}
 		case LLLLVAR_NUMERIC:{
 			//变长处理：读取指定字节的bcd编码数据做为数据长度，继续往后读
-			byte[] content = variableLengthRead(is,3,false);
-			result = EncodeUtil.hex(content);
+			result = variableLengthReadNum(is,3,fieldType);
 			break;
 		}
 		case LLVAR_BYTE_NUMERIC:{
 			//变长处理：读取指定字节的bcd编码数据做为数据长度，继续往后读
-			byte[] content = variableLengthRead(is,1,true);
+			byte[] content = variableLengthReadChar(is,1);
 			result = EncodeUtil.hex(content);			
 			break;
 		}
 		case LLLVAR_BYTE_NUMERIC:{
 			//变长处理：读取指定字节的bcd编码数据做为数据长度，继续往后读
-			byte[] content = variableLengthRead(is,2,true);
+			byte[] content = variableLengthReadChar(is,2);
 			result = EncodeUtil.hex(content);			
 			break;
 		}
 		case LLLLVAR_BYTE_NUMERIC:{
 			//变长处理：读取指定字节的bcd编码数据做为数据长度，继续往后读
-			byte[] content = variableLengthRead(is,3,true);
+			byte[] content = variableLengthReadChar(is,3);
 			result = EncodeUtil.hex(content);			
 			break;
 		}
@@ -447,16 +444,66 @@ public class Iso8583MessageFactory {
 	 * @author Ajsgn@foxmail.com
 	 * @date 2017年3月23日 下午6:02:01
 	 */
-	private byte[] variableLengthRead(InputStream is,int dataLength,boolean isByteLength) throws IOException{
-		byte[] bLength = fixedLengthRead(is, dataLength);
-		//判断是否表示读取字节长度 
-		//isByteLength == true 则读取byteLength个字节内容
-		//isByteLength != true 则读取(byteLength+1)/2个字节内容
-		int bLenghtInt = Integer.parseInt(EncodeUtil.hex(bLength), 10);
-		//(bLenghtInt + bLenghtInt % 2) / 2 : 如果是奇数，则+1 / 2 ，如果是偶数，则 /2
-		int length = isByteLength ? bLenghtInt: (bLenghtInt + bLenghtInt % 2) / 2;
-		return fixedLengthRead(is,length);
-	}
+//	private byte[] variableLengthRead(InputStream is,int dataLength,boolean isByteLength) throws IOException{
+//		byte[] bLength = fixedLengthRead(is, dataLength);
+//		//判断是否表示读取字节长度 
+//		//isByteLength == true 则读取byteLength个字节内容
+//		//isByteLength != true 则读取(byteLength+1)/2个字节内容
+//		int bLenghtInt = Integer.parseInt(EncodeUtil.hex(bLength), 10);
+//		//(bLenghtInt + bLenghtInt % 2) / 2 : 如果是奇数，则+1 / 2 ，如果是偶数，则 /2
+//		int length = isByteLength ? bLenghtInt: (bLenghtInt + bLenghtInt % 2) / 2;
+//		return fixedLengthRead(is,length);
+//	}
+	
+	/**
+     * <p>变长报文内容的解析</p>
+     * <p>1、读取固定长度的字节数做为整体消息的长度内容</p>
+     * <p>2、读取步骤1中的结果个的字节数做为实际内容</p>
+     * @Title: variableLengthReadChar
+     * @Description: 变长报文内容的解析
+     * @param is 数据来源
+     * @param dataLength 表示长度内容的字节数
+     * @return byte[] 读取到的有效消息内容
+     * @author Ajsgn@foxmail.com
+     * @date 2017年3月23日 下午6:02:01
+     */
+    private byte[] variableLengthReadChar(InputStream is,int dataLength) throws IOException{
+        byte[] bLength = fixedLengthRead(is, dataLength);
+        int bLenghtInt = Integer.parseInt(EncodeUtil.hex(bLength), 10);
+        return fixedLengthRead(is,bLenghtInt);
+    }
+    
+    /**
+     * <p>变长报文内容的解析</p>
+     * <p>1、读取固定长度的字节数做为整体消息的长度内容</p>
+     * <p>2、读取步骤1中的结果个的字节数做为实际内容</p>
+     * @Title: variableLengthReadNum
+     * @Description: 变长报文内容的解析
+     * @param is 数据来源
+     * @param dataLength 表示长度内容的字节数，读取byteLength/2个字节内容，然后hex展开，去除填充位
+     * @param fieldType 域定义，根据域定义查找左补、右补，去除填充位
+     * @return byte[] 读取到的有效消息内容
+     * @author Ajsgn@foxmail.com
+     * @date 2017年3月23日 下午6:02:01
+     */
+    private String variableLengthReadNum(InputStream is,int dataLength,Iso8583FieldType fieldType) throws IOException{
+        byte[] bLength = fixedLengthRead(is, dataLength);
+        //判断是否表示读取字节长度 
+        //读取(byteLength+1)/2个字节内容
+        int bLenghtInt = Integer.parseInt(EncodeUtil.hex(bLength), 10);
+        //(bLenghtInt + bLenghtInt % 2) / 2 : 如果是奇数，则+1 / 2 ，如果是偶数，则 /2
+        int length = (bLenghtInt + bLenghtInt % 2) / 2;
+        if(bLenghtInt % 2==1) {
+            if(fieldType.getFillBlankStrategy().isLeftAppend()) {
+                return EncodeUtil.hex(fixedLengthRead(is,length)).substring(1);
+            }else {
+                String value = EncodeUtil.hex(fixedLengthRead(is,length));
+                return value.substring(0,value.length()-1);
+            }
+        }
+        return EncodeUtil.hex(fixedLengthRead(is,length));
+    }
+	
 	
 	// >> getter & setter
 	/**

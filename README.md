@@ -1,5 +1,17 @@
 # Java8583  
 
+> 安装包：mvn install
+
+> 使用参考[例子](https://github.com/rufus123456/Java8583Sample)
+
+> 将QuickStart迁移至[例子](https://github.com/rufus123456/Java8583Sample)中
+
+> 解包后获取的值，已经去除了补位
+
+> 组包前setValue的值无需做补位处理，打包时自动补位
+
+# 原作者说明
+
 > 写在前面的话：  
   
 **不愿意看作者废话的，自行找测试包中的QuickStart.java，花费5分钟，快速入门，拿起键盘就是干！！！**  
